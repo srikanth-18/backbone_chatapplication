@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>To-do App in Backbone.js</title>
+  
+  <!-- ========= -->
+  <!--    CSS    -->
+  <!-- ========= -->
+ <style type="text/css">
+    #todoapp ul {
+      list-style-type: none; /* Hides bullet points from todo list */
+    }
+    #todo-list input.edit { /*  why todo list is used?????*/
+      display: none; /* Hides input box and check edit class */ 
+    }
+    #todo-list .editing label {
+      display: none; /* Hides label text when .editing*/
+    }    
+    #todo-list .editing input.edit {
+      display: inline; /* Shows input text box when .editing*/
+    }    
+  </style>    
+</head>
+<body>
+
+<!-- ========= -->
+  <!-- Your HTML -->
+  <!-- ========= -->
+
+  <section id="todoapp">
+    <header id="header">
+      <h1>Todos</h1>
+      <input id="new-todo" placeholder="What needs to be done?" autofocus> <!-- creating input box for to-do list items  -->
+    </header>
+    <section id="main">
+      <ul id="todo-list"></ul>
+    </section>
+  </section>
+
+<div id='child'> </div>
+  <!-- Templates  what does this block of code do ????? from where does <%- title %> come from???? How is this executed???  -->
+  <script type="text/template" id="item-template"> 
+    <div class="view">
+      <input class="toggle" type="checkbox" <%= completed ? 'checked' : '' %>>
+      <label><%- title %></label>
+      <input class="edit" value="<%- title %>">
+      <button class="destroy">remove</button>
+    </div>
+  </script>  
+
+  <!-- ========= -->
+  <!-- Libraries -->
+  <!-- ========= -->
+  <script src="jquery.min.js" type="text/javascript"></script>
+  <script src="underscore-min.js" type="text/javascript"></script>
+  <script src="backbone-min.js" type="text/javascript"></script>
+  <script src="backbone.localStorage-min.js" type="text/javascript"></script> 
+
+  <!-- =============== -->
+  <!-- Javascript code -->
+  <!-- =============== -->
+  <script type="text/javascript" id="script">
+    'use strict';
+  var test=1;
+// what is the use of <%= completed 
+    var app = {}; // create namespace for our app
+    
+    //--------------
+    // Models
+    //--------------
+    app.Todo = Backbone.Model.extend({
+      defaults: {
+        title: '',
+        completed: false
+      },
+   toggle: function(){
+
+        this.save({ completed: !this.get('completed')});//save  a model to your database and changes the attributes here in this case
+      }
+    });
+
+    //--------------
+    // Collections
+    //--------------
+    app.TodoList = Backbone.Collection.extend({// creating a collection class
+      model: app.Todo,// we have to include a model 
+      localStorage: new Store("backbone-todo")// the data is stored presently at a  local storage 
+    });
+
+
+    app.todoList = new app.TodoList();     // instance of the Collection
+
+    //--------------
+    // Views
+    //--------------
+    
+    // renders individual todo items list (li)
+    app.TodoView = Backbone.View.extend({
+      tagName: 'li',// every view has an el property by default it is set to div tag to change it use "tagname";
+      template: _.template($('#item-template').html()),// _.template converts JS template into function that can be evaluated and it takes string as an input      .html() returns a JSON object  //??????????????????????????
+      render: function(){                                 // how this function works??????????????
+     
+      this.$el.html(this.template(this.model.toJSON()));//li element is renderd the model.JSON data
+        return this; // enable chained calls
+      },
+//     alert(this.model)      ;
+      initialize: function(){
+       this.model.on('change', this.render, this);// when change event occurs render method is called and model is sent as a parameter
+       this.model.on('destroy', this.remove, this); // remove: Convenience Backbone's function for removing the view from the DOM.
+      },
+      events: {
+        'dblclick label' : 'edit', // when double clicked on tag name label edit function() appears
+        'keypress .edit' : 'updateOnEnter',
+        'blur .edit' : 'close',
+        'click .toggle': 'toggleCompleted',
+        'click .destroy': 'destroy'
+      },
+      edit: function(){
+        //alert(this.el);
+        this.$el.addClass('editing'); // add editing class to 'li'
+        this.input.focus();//????????????????????????????????????????????????????????
+      },
+      close: function(){
+        var value = this.input.val().trim();// 
+
+// any additional spaces before and after
+        if(value) {
+          this.model.save({title: value});// save a model to your database by delegating to backbone.sync() 
+// in which  request is sent to save model and its attributes will be passed 
+        }
+        this.$el.removeClass('editing');// remove the class name editing
+      },
+      updateOnEnter: function(e){
+        if(e.which == 13){ //when enter is hit after updating close() is called e.which gives the keyvalue of key we have typed
+          this.close();
+        }
+       },
+      toggleCompleted: function(){
+        this.model.toggle(); // toggles the completed proprety set by default to true after editing
+      },
+      destroy: function(){
+        this.model.destroy();
+      }  
+    })  
+;
+
+    // renders the full list of todo items calling TodoView for each one.
+    app.AppView = Backbone.View.extend({//view class
+      el: '#todoapp', // element where yo wanna render
+      initialize: function () {
+        this.input = this.$('#new-todo'); // ??????????????????????
+//        alert(JSON.stringify(this));      not working?????????????????
+        app.todoList.on('add', this.addAll, this);//on adding this.addALl is evoked and model is sent as a parameter
+        
+        app.todoList.on('reset', this.addAll, this);//on resetting  this.addALl is evoked and model is sent as a parameter
+        app.todoList.fetch(); // Loads list from local storage
+      },
+      events: {
+        'keypress #new-todo': 'createTodoOnEnter'
+      },
+      createTodoOnEnter: function(e){
+        if ( e.which !== 13 || !this.input.val().trim() ) { // ENTER_KEY = 13
+          return;
+        }
+        app.todoList.create(this.newAttributes());//creates a new model with the new attributes specified
+        this.input.val(''); // clean input box
+      },
+      addOne: function(todo){
+        var view = new app.TodoView({model: todo});//create a new view
+//    alert(view.render().el);
+        $('#todo-list').append(view.render().el);//  view.render().el gives "li" element appending 'li'element to #to-do-list
+      },
+      addAll: function(){
+        this.$('#todo-list').html(''); // clean the todo list
+        app.todoList.each(this.addOne, this);// how is this here a model???????
+      },
+      newAttributes: function(){
+        return {
+          title: this.input.val().trim(),
+          completed: false
+        }
+      }
+    });
+
+    //--------------
+    // Initializers
+    //--------------   
+
+    app.appView = new app.AppView(); 
+    
+/*
+var Child = Backbone.View.extend({
+    el: '#child',
+    render: function () {
+      this.$el.html('World');
+//      return this;
+    }
+  });
+
+var child=new Child();
+child.render();*/
+  </script>
+  
+</body>
+</html>
+

@@ -1,0 +1,80 @@
+   app.messageView=Backbone.View.extend({
+   tagName: "li",
+   el: '#container',
+
+    initialize:function(){
+      this.render();
+    },
+
+    render:function(){
+   this.$el.html("<b> Message </b>"+"<input type='text' id='messages' size='35'>");
+   return this;
+    },
+
+   events:{
+      'keypress #messages':'submitHandler',
+    },
+
+submitHandler:function(e){
+    if(e.which==13)
+      {
+      var val = $(e.currentTarget).val();
+    this.addtolocalstorage(new app.ChatModel({message: val}))  ;
+    return false;
+      }
+},
+
+
+addtolocalstorage: function(model) {
+    
+   
+    app.chat_collection.fetch();
+   
+   app.chat_collection.add(model);
+    //alert("newly added:::"+JSON.stringify(app.chat_collection))
+    model.save();
+
+   return;
+ },
+
+
+
+});
+   
+   
+
+   app.messagesView=Backbone.View.extend({
+   tagName: "ul",
+   initialize:function(){
+   alert("initializing");
+   app.chat_collection.fetch(); 
+   app.chat_collection.on("add",this.onChatAdded,this);
+   this.render();
+   /*app.chat_collection.fetch();
+   alert("ALREADY ADDED"+JSON.stringify(app.chat_collection))*/
+   },
+
+
+   onChatAdded:function(newchat){
+    
+    var newChat=new app.messageView({model:newchat})//new chat that user typed is to be added here
+    this.$el.append(newChat.render.$el);
+   
+   },
+   render:function(){
+   var self=this;
+   app.chat_collection.fetch();
+   alert("ALREADY ADDED"+JSON.stringify(app.chat_collection));
+
+   app.chat_collection.each(function(chat){
+   var chatView2=new messageView({model:chat});
+   self.$el.append(chatView2.render().$el);
+
+   });
+
+   }
+
+   });
+
+   var messageObject=new app.messageView();
+   var  MessagesviewObject=new app.messagesView({el:"#chathistory"});

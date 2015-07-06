@@ -1,0 +1,104 @@
+<style type="text/css">
+li{
+  
+  list-style: none;
+  line-height: 1.8;
+  
+}
+
+#chathistory{
+
+    padding-left: 100px;
+    border: 2px solid yellow;
+    margin-right: 20px;
+    border-radius: 25px;
+    float: right;
+    width:40%;
+	background-color: #b0c4de;
+
+	}
+
+#container{
+   padding-left: 100px;
+	padding-top: 50px;
+   float: right;
+    width:80%;
+	
+}	
+
+#users{
+
+
+	float:right;
+	border: 2px solid pink;
+	border-radius: 0px;
+    width: 28%;
+    height: 50%;
+
+}
+
+#chatrooms{
+
+
+	float:left;
+	border: 2px solid purple;
+
+    width: 20%;
+    height: 50%;
+
+
+}
+
+
+#users li{
+
+ padding-top: 10px;
+ padding-left: 50px;
+ border: 2px solid black;
+	font-weight: bold; 
+ color: Maroon;
+
+}
+
+#users .clicked{
+
+    color: orange;
+    background-color: SpringGreen;
+}
+
+
+#chatrooms li{
+
+
+ padding-top: 10px;
+ padding-left: 50px;
+ border: 2px solid black;
+	font-weight: bold; 
+ color: #FF4040;
+
+}
+
+
+#chatroomcontainer{
+   padding-left: 100px;
+	padding-top: 50px;
+   float: right;
+    width:80%;
+	
+}
+
+#chatroombox{
+    
+	position:absolute; 
+	bottom:200px;
+	padding-left: 150px;
+	margin-left: 5%
+
+}
+
+.deleted{
+
+display: none;
+
+}
+</style>
